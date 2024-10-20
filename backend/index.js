@@ -13,14 +13,25 @@ const port = process.env.PORT
 app.use(express.json({ extended: false }))
 
 
+
+// get all products
+app.get('/api/products', async (req, res) => {
+    try {
+        const products = await Product.find()
+        res.status(200).json({ succes: true, data: products })
+    } catch (error) {
+        console.log('Error fetching products:', error.message);
+        res.status(500).json({ succes: false, message: "Server Error" })
+
+    }
+})
+
+// creates a new product in database
 app.post('/api/products', async (req, res) => {
-    // data from user
     const product = req.body;
     if (!product.name || !product.price || !product.image) {
         return res.status(400).json({ success: false, message: "All fields must be infromed!" })
     }
-
-    // creates a new product in database
     const newProduct = new Product(product)
 
     try {
@@ -29,6 +40,19 @@ app.post('/api/products', async (req, res) => {
     } catch (error) {
         console.error(`Error at creating a new Product: `, error.message);
         res.status(500).json({ success: false, message: "Server error" })
+
+    }
+})
+
+// Delete product
+app.delete('/api/products/:id', async (req, res) => {
+    const { id } = req.params
+    try {
+        await Product.findByIdAndDelete(id)
+        res.status(200).json({ success: true, message: "Product deleted!" })
+    } catch (error) {
+        res.status(404).json({ success: false, message: "Product not found" })
+        console.log('Error at deleting product:', error.message);
 
     }
 })
